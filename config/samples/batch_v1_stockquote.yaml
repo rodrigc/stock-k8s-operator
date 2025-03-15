@@ -1,0 +1,13 @@
+apiVersion: batch.stock-operator.crodrigues.org/v1
+kind: StockQuote
+metadata:
+  labels:
+    app.kubernetes.io/name: stock-k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: stockquote-sample
+spec:
+  ticker: AAPL
+  timeInerval: 30
+  secretRef:
+    name: polygon-api-secret
+    key: api-key
