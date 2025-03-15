@@ -1,135 +1,135 @@
-# stock-k8s-operator
-// TODO(user): Add simple overview of use/purpose
+# 📊 Stock K8s Operator
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+A Kubernetes operator that dynamically monitors stock prices and integrates financial data into your Kubernetes ecosystem.
 
-## Getting Started
+![Kubernetes + Stocks](https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/docs/images/stock-operator-logo.png)
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/rodrigc/stock-k8s-operator)](https://goreportcard.com/report/github.com/rodrigc/stock-k8s-operator)
+[![License](https://img.shields.io/github/license/rodrigc/stock-k8s-operator)](https://github.com/rodrigc/stock-k8s-operator/blob/main/LICENSE)
+
+## 🔍 Overview
+
+The Stock K8s Operator enables Kubernetes to interact with financial markets by providing real-time stock price monitoring capabilities within your cluster. This operator extends Kubernetes with custom resources that represent stock quotes and their associated data, allowing your applications to react to market information.
+
+## ✨ Features
+
+- 📈 **Stock Quote Monitoring**: Query current stock prices from financial data providers
+- 🔄 **Automatic Updates**: Periodically fetch the latest stock information
+- 📊 **Status Integration**: Stock quote data stored directly in Kubernetes resource status
+- 🔗 **API Provider Flexibility**: Compatible with various stock data APIs
+- 🧩 **Kubernetes Native**: Follows standard Kubernetes operator patterns
+
+## 🏗️ Architecture
+
+![Architecture Diagram](https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/docs/images/architecture.png)
+
+The Stock K8s Operator follows standard Kubernetes operator patterns:
+
+1. **Custom Resource Definition**: Defines `StockQuote` resources in your cluster
+2. **Controller**: Watches for `StockQuote` resources and queries external APIs for data
+3. **Reconciliation Loop**: Periodically fetches updated stock information
+4. **Status Updates**: Records current price and metadata in the resource status
+
+## 🚀 Installation
 
 ### Prerequisites
-- go version v1.23.0+
-- docker version 17.03+.
-- kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
+- Kubernetes cluster v1.19+
+- kubectl v1.19+
+- Helm v3+ (optional)
 
-```sh
-make docker-build docker-push IMG=<some-registry>/stock-k8s-operator:tag
+### Using kubectl
+
+```bash
+# Install CRDs
+kubectl apply -f https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/config/crd/bases/batch.stock-operator.crodrigues.org_stockquotes.yaml
+
+# Install operator
+kubectl apply -f https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/config/deploy/operator.yaml
 ```
 
-**NOTE:** This image ought to be published in the personal registry you specified.
-And it is required to have access to pull the image from the working environment.
-Make sure you have the proper permission to the registry if the above commands don’t work.
+### Using Helm
 
-**Install the CRDs into the cluster:**
-
-```sh
-make install
+```bash
+helm repo add stock-operator https://rodrigc.github.io/stock-k8s-operator/charts
+helm install stock-operator stock-operator/stock-k8s-operator
 ```
 
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
+## 📝 Usage
 
-```sh
-make deploy IMG=<some-registry>/stock-k8s-operator:tag
+### Creating a StockQuote Resource
+
+```yaml
+apiVersion: batch.stock-operator.crodrigues.org/v1
+kind: StockQuote
+metadata:
+  name: aapl-stock
+spec:
+  symbol: AAPL
 ```
 
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
+### Checking StockQuote Status
 
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
-
-```sh
-kubectl apply -k config/samples/
+```bash
+kubectl get stockquotes
 ```
 
->**NOTE**: Ensure that the samples has default values to test it out.
-
-### To Uninstall
-**Delete the instances (CRs) from the cluster:**
-
-```sh
-kubectl delete -k config/samples/
+```
+NAME        SYMBOL   PRICE    LAST UPDATED
+aapl-stock  AAPL     175.23   2025-03-15T14:30:00Z
+msft-stock  MSFT     418.07   2025-03-15T14:30:00Z
 ```
 
-**Delete the APIs(CRDs) from the cluster:**
+### Detailed View
 
-```sh
-make uninstall
+```bash
+kubectl describe stockquote aapl-stock
 ```
 
-**UnDeploy the controller from the cluster:**
+## ⚙️ Configuration
 
-```sh
-make undeploy
+The operator can be configured through environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `WATCH_NAMESPACE` | Namespace to watch for StockQuote resources | All namespaces |
+| `API_PROVIDER` | Stock data provider to use | `alphavantage` |
+| `API_KEY` | API key for the stock data provider | `""` |
+| `RECONCILE_PERIOD` | How often to update stock quotes | `5m` |
+
+## 💻 Development
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/rodrigc/stock-k8s-operator.git
+cd stock-k8s-operator
+
+# Build
+make build
+
+# Run locally
+make run
 ```
 
-## Project Distribution
+### Running Tests
 
-Following the options to release and provide this solution to the users.
-
-### By providing a bundle with all YAML files
-
-1. Build the installer for the image built and published in the registry:
-
-```sh
-make build-installer IMG=<some-registry>/stock-k8s-operator:tag
+```bash
+make test
 ```
 
-**NOTE:** The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without its
-dependencies.
+## 🔮 Use Cases
 
-2. Using the installer
+- **Financial Dashboards**: Display real-time market data in Kubernetes-based dashboards
+- **Informational Services**: Provide stock information to applications running in your cluster
+- **Market Data Collection**: Gather stock prices for analysis or reporting
+- **Financial Applications**: Base financial applications on current market data
 
-Users can just run 'kubectl apply -f <URL for YAML BUNDLE>' to install
-the project, i.e.:
+## 🤝 Contributing
 
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/stock-k8s-operator/<tag or branch>/dist/install.yaml
-```
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-### By providing a Helm Chart
+## 📜 License
 
-1. Build the chart using the optional helm plugin
-
-```sh
-kubebuilder edit --plugins=helm/v1-alpha
-```
-
-2. See that a chart was generated under 'dist/chart', and users
-can obtain this solution from there.
-
-**NOTE:** If you change the project, you need to update the Helm Chart
-using the same command above to sync the latest changes. Furthermore,
-if you create webhooks, you need to use the above command with
-the '--force' flag and manually ensure that any custom configuration
-previously added to 'dist/chart/values.yaml' or 'dist/chart/manager/manager.yaml'
-is manually re-applied afterwards.
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-**NOTE:** Run `make help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
-
-## License
-
-Copyright 2025.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+[MIT License](LICENSE)
