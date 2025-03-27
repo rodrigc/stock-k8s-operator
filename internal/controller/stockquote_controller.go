@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -135,6 +136,7 @@ func (r *StockQuoteReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *StockQuoteReconciler) getAPIKeyFromSecret(ctx context.Context, stockQuote *batchv1.StockQuote) (string, error) {
 	secret := &corev1.Secret{}
 	secretName := stockQuote.Spec.SecretRef.Name
+	secretNamespace := stockQuote.Spec.SecretRef.Namespace
 	secretKey := stockQuote.Spec.SecretRef.Key
 
 	if secretKey == "" {
@@ -142,17 +144,17 @@ func (r *StockQuoteReconciler) getAPIKeyFromSecret(ctx context.Context, stockQuo
 	}
 
 	err := r.Get(ctx, types.NamespacedName{
-		Namespace: stockQuote.Namespace,
+		Namespace: secretNamespace,
 		Name:      secretName,
 	}, secret)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to get secret %s: %w", secretName, err)
+		return "", fmt.Errorf("failed to get secret %s in namespace %s: %w", secretName, secretNamespace, err)
 	}
 
 	apiKey, ok := secret.Data[secretKey]
 	if !ok {
-		return "", fmt.Errorf("secret %s does not contain key %s", secretName, secretKey)
+		return "", fmt.Errorf("secret %s in namespace %s does not contain key %s", secretName, secretNamespace, secretKey)
 	}
 
 	return string(apiKey), nil
@@ -164,14 +166,31 @@ func fetchLatestPrice(ticker, apiKey string) (float64, error) {
 	// This is using their daily bars endpoint as an example
 	url := fmt.Sprintf("https://api.polygon.io/v2/aggs/ticker/%s/prev?apiKey=%s", ticker, apiKey)
 
-	resp, err := http.Get(url)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "stock-k8s-operator/1.0")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("failed to make HTTP request: %w", err)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return 0, fmt.Errorf("rate limit exceeded for ticker: %s", ticker)
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return 0, fmt.Errorf("API request failed with status code: %d, body: %s", resp.StatusCode, string(body))
 	}
 
 	var polygonResp PolygonResponse
@@ -183,7 +202,12 @@ func fetchLatestPrice(ticker, apiKey string) (float64, error) {
 		return 0, fmt.Errorf("no price data available for ticker: %s", ticker)
 	}
 
-	return polygonResp.Results[0].C, nil
+	price := polygonResp.Results[0].C
+	if price <= 0 {
+		return 0, fmt.Errorf("invalid price (<= 0) received for ticker: %s", ticker)
+	}
+
+	return price, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

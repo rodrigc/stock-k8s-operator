@@ -54,32 +54,25 @@ spec:
                   API key
                 properties:
                   key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
+                    default: api-key
+                    description: Key is the key in the secret containing the API key
                     type: string
                   name:
-                    default: ""
-                    description: |-
-                      Name of the referent.
-                      This field is effectively required, but due to backwards compatibility is
-                      allowed to be empty. Instances of this type with an empty value here are
-                      almost certainly wrong.
-                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    description: Name is the name of the secret
                     type: string
-                  optional:
-                    description: Specify whether the Secret or its key must be defined
-                    type: boolean
+                  namespace:
+                    description: Namespace is the namespace containing the secret
+                    type: string
                 required:
-                - key
+                - name
+                - namespace
                 type: object
-                x-kubernetes-map-type: atomic
               ticker:
                 description: The stock ticker to retrieve (e.g. AAPL, MSFT)
                 type: string
               timeInterval:
-                description: |-
-                  TimeInterval is the interval in minutes to update the stock price
-                  The price of the stock ticker
+                description: TimeInterval is the interval in minutes to update the
+                  stock price
                 type: integer
             required:
             - secretRef
@@ -93,7 +86,7 @@ spec:
                 format: date-time
                 type: string
               nextUpdateTime:
-                description: LastUpdated is when the price was last updated
+                description: NextUpdateTime is when the next price update will occur
                 format: date-time
                 type: string
               price:

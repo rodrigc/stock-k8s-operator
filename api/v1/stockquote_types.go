@@ -17,7 +17,6 @@ limitations under the License.
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -32,18 +31,22 @@ type StockQuoteSpec struct {
 	Ticker string `json:"ticker"`
 
 	// TimeInterval is the interval in minutes to update the stock price
-	// The price of the stock ticker
 	TimeInterval int `json:"timeInterval,omitempty"`
 
 	// SecretRef refers to the secret containing the Polygon API key
 	// +kubebuilder:validation:Required
-	SecretRef corev1.SecretKeySelector `json:"secretRef"`
+	SecretRef SecretReference `json:"secretRef"`
 }
 
 // SecretReference contains details about the Secret containing the API key
 type SecretReference struct {
 	// Name is the name of the secret
+	// +kubebuilder:validation:Required
 	Name string `json:"name"`
+
+	// Namespace is the namespace containing the secret
+	// +kubebuilder:validation:Required
+	Namespace string `json:"namespace"`
 
 	// Key is the key in the secret containing the API key
 	// +kubebuilder:default:=api-key
@@ -58,7 +61,7 @@ type StockQuoteStatus struct {
 	// LastUpdated is when the price was last updated
 	LastUpdated *metav1.Time `json:"lastUpdated,omitempty"`
 
-	// LastUpdated is when the price was last updated
+	// NextUpdateTime is when the next price update will occur
 	NextUpdateTime *metav1.Time `json:"nextUpdateTime,omitempty"`
 }
 

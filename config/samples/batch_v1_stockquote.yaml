@@ -7,7 +7,7 @@ metadata:
   name: stockquote-sample
 spec:
   ticker: AAPL
-  timeInerval: 30
+  timeInterval: 30
   secretRef:
     name: polygon-api-secret
     key: api-key
