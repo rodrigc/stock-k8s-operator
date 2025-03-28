@@ -2,7 +2,7 @@
 
 A Kubernetes operator that dynamically monitors stock prices and integrates financial data into your Kubernetes ecosystem.
 
-![Kubernetes + Stocks](https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/docs/images/stock-operator-logo.svg)
+![Kubernetes + Stocks](https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/images/stock-operator-logo.svg)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/rodrigc/stock-k8s-operator)](https://goreportcard.com/report/github.com/rodrigc/stock-k8s-operator)
 [![License](https://img.shields.io/github/license/rodrigc/stock-k8s-operator)](https://github.com/rodrigc/stock-k8s-operator/blob/main/LICENSE)
@@ -21,7 +21,7 @@ The Stock K8s Operator enables Kubernetes to interact with financial markets by 
 
 ## 🏗️ Architecture
 
-![Architecture Diagram](https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/docs/images/architecture.png)
+![Architecture Diagram](https://raw.githubusercontent.com/rodrigc/stock-k8s-operator/main/images/architecture.png)
 
 The Stock K8s Operator follows standard Kubernetes operator patterns:
 
