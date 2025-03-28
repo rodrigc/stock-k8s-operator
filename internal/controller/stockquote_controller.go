@@ -41,6 +41,8 @@ import (
 type StockQuoteReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	// APIURL is the base URL for the Polygon.io API
+	APIURL string
 }
 
 type PolygonResponse struct {
@@ -88,6 +90,7 @@ func (r *StockQuoteReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		log.Info("Not time to update yet", "ticker", stockQuote.Spec.Ticker, "remainingTime", remainingTime)
 		return ctrl.Result{RequeueAfter: remainingTime}, nil
 	}
+
 	// Get API key from the secret
 	apiKey, err := r.getAPIKeyFromSecret(ctx, stockQuote)
 	if err != nil {
@@ -98,8 +101,14 @@ func (r *StockQuoteReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Time to update price
 	ticker := stockQuote.Spec.Ticker
 
+	// Use default Polygon.io URL if not set (for testing)
+	baseURL := r.APIURL
+	if baseURL == "" {
+		baseURL = "https://api.polygon.io"
+	}
+
 	// Fetch current price from Polygon.io
-	price, err := fetchLatestPrice(ticker, apiKey)
+	price, err := fetchLatestPrice(ticker, apiKey, baseURL)
 	if err != nil {
 		log.Error(err, "Failed to fetch price from Polygon.io", "ticker", ticker)
 		return ctrl.Result{RequeueAfter: time.Minute * 5}, err
@@ -161,10 +170,10 @@ func (r *StockQuoteReconciler) getAPIKeyFromSecret(ctx context.Context, stockQuo
 }
 
 // fetchLatestPrice fetches the latest stock price from Polygon.io
-func fetchLatestPrice(ticker, apiKey string) (float64, error) {
+func fetchLatestPrice(ticker, apiKey string, baseURL string) (float64, error) {
 	// For a real implementation, you should use the correct Polygon.io endpoint
 	// This is using their daily bars endpoint as an example
-	url := fmt.Sprintf("https://api.polygon.io/v2/aggs/ticker/%s/prev?apiKey=%s", ticker, apiKey)
+	url := fmt.Sprintf("%s/v2/aggs/ticker/%s/prev?apiKey=%s", baseURL, ticker, apiKey)
 
 	client := &http.Client{
 		Timeout: 10 * time.Second,
