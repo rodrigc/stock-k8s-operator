@@ -17,6 +17,11 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Install Ginkgo
+        run: |
+          GINKGO_VERSION=$(go list -m -f "{{ .Version }}" github.com/onsi/ginkgo/v2)
+          go install github.com/onsi/ginkgo/v2/ginkgo@${GINKGO_VERSION}
+
       - name: Running Tests
         run: |
           go mod tidy
