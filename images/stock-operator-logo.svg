@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#f4f4f4"/>
+  
+  <!-- Stylized Dollar Sign as Diamond -->
+  <g transform="translate(200, 150)">
+    <path 
+      d="M0 -100 
+         L70 0 
+         L0 100 
+         L-70 0 Z" 
+      fill="#326CE5" 
+      opacity="0.7"
+    />
+    <text 
+      x="0" 
+      y="20" 
+      text-anchor="middle" 
+      font-family="Arial, sans-serif" 
+      font-size="100" 
+      fill="white" 
+      font-weight="bold"
+    >
+      $
+    </text>
+  </g>
+  
+  <!-- Line Chart for Stock Quotes -->
+  <g transform="translate(50, 250)">
+    <polyline 
+      points="0,100 50,50 100,80 150,30 200,60 250,20 300,70" 
+      fill="none" 
+      stroke="#2ECC71" 
+      stroke-width="6" 
+      stroke-linecap="round"
+    />
+    
+    <!-- X and Y Axis -->
+    <line x1="0" y1="100" x2="350" y2="100" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="0" x2="0" y2="100" stroke="#333" stroke-width="2"/>
+  </g>
+  
+  <!-- Polygon.io Text -->
+  <text 
+    x="200" 
+    y="350" 
+    text-anchor="middle" 
+    font-family="Arial, sans-serif" 
+    font-size="24" 
+    fill="#2C3E50"
+  >
+    stock-k8s-operator
+  </text>
+</svg>

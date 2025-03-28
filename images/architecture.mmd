@@ -1,0 +1,36 @@
+graph TB
+    subgraph Kubernetes["Kubernetes Cluster"]
+        direction TB
+        subgraph Operator["Stock Quote Operator"]
+            Reconciler["Reconciler"]
+            Cache["Cache"]
+        end
+        
+        subgraph Resources["Kubernetes Resources"]
+            StockQuote["StockQuote CR"]
+            Secret["Secret (API Key)"]
+        end
+    end
+    
+    subgraph External["External Services"]
+        PolygonAPI["Polygon.io API"]
+    end
+    
+    %% Operator internal connections
+    Reconciler --> Cache
+    
+    %% Kubernetes resource connections
+    Reconciler --> StockQuote
+    Reconciler --> Secret
+    
+    %% External service connections
+    Reconciler --> PolygonAPI
+    
+    %% Styling
+    classDef operator fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef resource fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef external fill:#bfb,stroke:#333,stroke-width:2px;
+    
+    class Reconciler,Cache operator;
+    class StockQuote,Secret resource;
+    class PolygonAPI external; 
