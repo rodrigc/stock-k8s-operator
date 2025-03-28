@@ -108,7 +108,8 @@ var _ = Describe("StockQuote Controller", func() {
 			By("Setting up a test server to mock Polygon.io API")
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(`{"results":[{"c":150.50}]}`))
+				_, err := w.Write([]byte(`{"results":[{"c":150.50}]}`))
+				Expect(err).NotTo(HaveOccurred())
 			}))
 			defer server.Close()
 
@@ -139,7 +140,8 @@ var _ = Describe("StockQuote Controller", func() {
 			By("Setting up a test server to mock Polygon.io API error")
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(`{"error":"Internal Server Error"}`))
+				_, err := w.Write([]byte(`{"error":"Internal Server Error"}`))
+				Expect(err).NotTo(HaveOccurred())
 			}))
 			defer server.Close()
 

@@ -101,17 +101,11 @@ func (r *StockQuoteReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Time to update price
 	ticker := stockQuote.Spec.Ticker
 
-	// Use default Polygon.io URL if not set (for testing)
-	baseURL := r.APIURL
-	if baseURL == "" {
-		baseURL = "https://api.polygon.io"
-	}
-
 	// Fetch current price from Polygon.io
-	price, err := fetchLatestPrice(ticker, apiKey, baseURL)
+	price, err := r.fetchPrice(ctx, ticker, apiKey)
 	if err != nil {
 		log.Error(err, "Failed to fetch price from Polygon.io", "ticker", ticker)
-		return ctrl.Result{RequeueAfter: time.Minute * 5}, err
+		return ctrl.Result{}, err
 	}
 
 	// Format price as string with 2 decimal places
@@ -170,28 +164,22 @@ func (r *StockQuoteReconciler) getAPIKeyFromSecret(ctx context.Context, stockQuo
 }
 
 // fetchLatestPrice fetches the latest stock price from Polygon.io
-func fetchLatestPrice(ticker, apiKey string, baseURL string) (float64, error) {
-	// For a real implementation, you should use the correct Polygon.io endpoint
-	// This is using their daily bars endpoint as an example
-	url := fmt.Sprintf("%s/v2/aggs/ticker/%s/prev?apiKey=%s", baseURL, ticker, apiKey)
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", url, nil)
+func (r *StockQuoteReconciler) fetchPrice(ctx context.Context, ticker string, apiKey string) (float64, error) {
+	url := fmt.Sprintf("%s/v2/aggs/ticker/%s/prev?adjusted=true&apiKey=%s", r.APIURL, ticker, apiKey)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "stock-k8s-operator/1.0")
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("failed to make HTTP request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.FromContext(ctx).Error(err, "Failed to close response body")
+		}
+	}()
 
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return 0, fmt.Errorf("rate limit exceeded for ticker: %s", ticker)

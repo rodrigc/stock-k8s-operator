@@ -30,8 +30,10 @@ type StockQuoteSpec struct {
 	// +kubebuilder:validation:Required
 	Ticker string `json:"ticker"`
 
-	// TimeInterval is the interval in minutes to update the stock price
-	TimeInterval int `json:"timeInterval,omitempty"`
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=1440
+	// TimeInterval is the interval in minutes between price updates
+	TimeInterval int32 `json:"timeInterval"`
 
 	// SecretRef refers to the secret containing the Polygon API key
 	// +kubebuilder:validation:Required
@@ -65,11 +67,11 @@ type StockQuoteStatus struct {
 	NextUpdateTime *metav1.Time `json:"nextUpdateTime,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Ticker",type="string",JSONPath=".spec.ticker"
-//+kubebuilder:printcolumn:name="Price",type="string",JSONPath=".status.price"
-//+kubebuilder:printcolumn:name="Last Updated",type="date",JSONPath=".status.lastUpdated"
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Ticker",type="string",JSONPath=".spec.ticker"
+// +kubebuilder:printcolumn:name="Price",type="string",JSONPath=".status.price"
+// +kubebuilder:printcolumn:name="Last Updated",type="date",JSONPath=".status.lastUpdated"
 
 // StockQuote is the Schema for the stockquotes API.
 type StockQuote struct {
